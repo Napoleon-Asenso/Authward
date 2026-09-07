@@ -197,3 +197,6 @@ PDF
 Preserve Security Defaults: If an architectural trade-off arises, default strictly to server-side enforcement, database transaction safety, and constant-time execution over client convenience.  
 PDF
 + 1
+
+8. Commit Convention
+When the user asks to commit changes, commit ONLY the intended files (never secrets, logs, or generated artifacts) and write an original, meaningful commit message that accurately summarizes the change. Never use generic or placeholder messages (e.g., "updates", "fixes", "WIP"). Include the reason or effect of the change where useful, following conventional style (e.g., "fix: redirect signed-out users at / to the signup form").

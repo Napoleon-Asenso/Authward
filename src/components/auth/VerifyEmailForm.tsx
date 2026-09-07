@@ -79,6 +79,7 @@ export function VerifyEmailForm({ initialEmail }: { initialEmail: string }) {
         label="Verification code"
         inputMode="numeric"
         maxLength={6}
+        placeholder="123456"
         value={code}
         onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
         error={fieldErrors.code?.[0]}

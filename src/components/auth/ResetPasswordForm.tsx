@@ -41,6 +41,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         id="reset-password"
         label="New password"
         isPassword
+        placeholder="Enter a new password"
         autoComplete="new-password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}

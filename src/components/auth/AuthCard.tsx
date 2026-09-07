@@ -15,7 +15,7 @@ export function AuthCard({
 }: AuthCardProps) {
   return (
 <main className="flex h-screen items-center justify-center bg-surface px-4 py-10">
-      <div className="w-full max-w-md rounded-xl bg-surface-container p-8 shadow-card">
+      <div className="w-full max-w-md p-8">
         <div className="mb-6 flex justify-center">
           <BrandLogo />
         </div>

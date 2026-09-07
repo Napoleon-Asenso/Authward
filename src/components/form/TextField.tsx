@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState, type InputHTMLAttributes } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -48,11 +49,11 @@ export function TextField({
           }
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy.length > 0 ? describedBy : undefined}
-          className={`w-full rounded-md border bg-surface-variant px-3 py-2.5 text-sm text-on-surface outline-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container ${
+          className={`w-full rounded-md border bg-surface-variant px-3 py-2.5 text-sm text-on-surface outline-none transition placeholder:text-on-surface-variant/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container ${
             error
               ? "border-error"
               : "border-outline"
-          } ${className}`}
+          } ${isPassword ? "pr-10" : ""} ${className}`}
           {...rest}
         />
         {isPassword && (
@@ -60,9 +61,13 @@ export function TextField({
             type="button"
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? "Hide password" : "Show password"}
-            className="absolute inset-y-0 right-0 flex items-center px-3 text-xs font-medium uppercase text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container"
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container"
           >
-            {showPassword ? "Hide" : "Show"}
+            {showPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
           </button>
         )}
       </div>

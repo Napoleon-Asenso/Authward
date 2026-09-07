@@ -37,7 +37,8 @@ export function SignupForm() {
       <FormAlert message={error} />
       <TextField
         id="signup-name"
-        label="Name"
+        label="Full Name"
+        placeholder="e.g. Jane Doe"
         autoComplete="name"
         value={name}
         onChange={(e) => setName(e.target.value)}
@@ -48,6 +49,7 @@ export function SignupForm() {
         id="signup-email"
         label="Email"
         type="email"
+        placeholder="you@example.com"
         autoComplete="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -58,6 +60,7 @@ export function SignupForm() {
         id="signup-password"
         label="Password"
         isPassword
+        placeholder="Enter a strong password"
         autoComplete="new-password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}

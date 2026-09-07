@@ -38,6 +38,7 @@ export function SigninForm() {
         id="signin-email"
         label="Email"
         type="email"
+        placeholder="you@example.com"
         autoComplete="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -48,6 +49,7 @@ export function SigninForm() {
         id="signin-password"
         label="Password"
         isPassword
+        placeholder="Enter your password"
         autoComplete="current-password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
