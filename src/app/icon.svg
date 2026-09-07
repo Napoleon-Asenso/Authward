@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Authward">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E14CFF" />
+      <stop offset="0.5" stop-color="#C900DB" />
+      <stop offset="1" stop-color="#8F00A3" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#brand)" />
+  <path
+    d="M32 11 L49 18 V32 C49 42.5 41.6 50.3 32 53.6 C22.4 50.3 15 42.5 15 32 V18 Z"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="4"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M24.5 32.5 L29.5 37.5 L40 25.5"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

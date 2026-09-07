@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+
+  --primary: 295 100% 43%;
+  --on-primary: 0 0% 100%;
+  --surface: 300 56% 98%;
+  --on-surface: 270 7% 11%;
+  --surface-variant: 276 19% 90%;
+  --on-surface-variant: 262 8% 32%;
+  --surface-container: 0 0% 100%;
+  --outline: 262 3% 48%;
+  --error: 300 100% 50%;
+  --error-container: 300 100% 92%;
+  --on-error-container: 300 100% 27%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --primary: 295 86% 70%;
+    --on-primary: 295 60% 12%;
+    --surface: 300 28% 7%;
+    --on-surface: 300 14% 92%;
+    --surface-variant: 300 16% 16%;
+    --on-surface-variant: 300 10% 78%;
+    --surface-container: 300 24% 11%;
+    --outline: 300 10% 55%;
+    --error: 300 100% 72%;
+    --error-container: 300 45% 20%;
+    --on-error-container: 300 100% 90%;
+  }
+}
+
+html {
+  font-family: Roboto, ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: hsl(var(--surface));
+  color: hsl(var(--on-surface));
+  min-height: 100vh;
+}

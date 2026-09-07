@@ -1,0 +1,35 @@
+{
+  "name": "authward",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Authentication Slice (Assessment 1) - hardened server-side auth engine",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "6.2.1",
+    "bcrypt": "5.1.1",
+    "next": "15.1.6",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "zod": "3.24.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "5.0.2",
+    "@types/node": "22.10.5",
+    "@types/react": "19.0.4",
+    "@types/react-dom": "19.0.2",
+    "autoprefixer": "10.4.20",
+    "postcss": "8.4.49",
+    "prisma": "6.2.1",
+    "tailwindcss": "3.4.17",
+    "typescript": "5.7.3"
+  }
+}
