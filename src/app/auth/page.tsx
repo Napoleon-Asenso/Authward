@@ -24,19 +24,20 @@ interface AuthSearchParams {
 const modeLabels: Record<AuthMode, { title: string; subtitle: string }> = {
   [AUTH_MODES.signup]: {
     title: "Create your account",
-    subtitle: "Join Authward with a verified email.",
+    subtitle: "Enter your details below to create your account",
   },
   [AUTH_MODES.signin]: {
-    title: "Sign in",
-    subtitle: "Enter your credentials to continue.",
+    title: "Welcome back",
+    subtitle: "Sign in to your account",
   },
   [AUTH_MODES.verifyEmail]: {
     title: "Verify your email",
     subtitle: "Enter the 6-digit code sent to your inbox.",
   },
   [AUTH_MODES.forgotPassword]: {
-    title: "Forgot password",
-    subtitle: "We will send a reset link if the account exists.",
+    title: "Reset Password",
+    subtitle:
+      "Enter your email address and we'll send you a link to reset your password",
   },
   [AUTH_MODES.resetPassword]: {
     title: "Reset your password",
@@ -77,7 +78,7 @@ function parseMode(value: string | string[] | undefined): AuthMode {
   if (mode && (Object.values(AUTH_MODES) as string[]).includes(mode)) {
     return mode as AuthMode;
   }
-  return AUTH_MODES.signin;
+  return AUTH_MODES.signup;
 }
 
 export async function generateMetadata({

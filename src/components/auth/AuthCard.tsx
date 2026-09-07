@@ -19,9 +19,9 @@ export function AuthCard({
         <div className="mb-6 flex justify-center">
           <BrandLogo />
         </div>
-        <h1 className="text-2xl font-bold text-on-surface">{title}</h1>
+        <h1 className="text-center text-2xl font-bold text-on-surface">{title}</h1>
         {subtitle && (
-          <p className="mt-1 text-sm text-on-surface-variant">{subtitle}</p>
+          <p className="mt-1 text-center text-sm text-on-surface-variant">{subtitle}</p>
         )}
         <div className="mt-6">{children}</div>
         {footer && (

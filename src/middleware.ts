@@ -66,7 +66,7 @@ export function middleware(request: NextRequest) {
 
   if (pathname === "/") {
     return NextResponse.redirect(
-      new URL(hasSession ? DASHBOARD_PATH : SIGN_IN_PATH, request.url),
+      new URL(hasSession ? DASHBOARD_PATH : SIGN_UP_PATH, request.url),
     );
   }
 
