@@ -7,7 +7,11 @@ const RESEND_COOLDOWN_SECONDS = 60;
 /**
  * Issues a fresh 6-digit verification code for a user, atomically invalidating
  * any previously active (unused) codes for the same user.
- * Returns the raw plaintext code (never persisted).
+ *
+ * The code is persisted synchronously so the API can respond immediately. The
+ * delivery email is dispatched as a detached (non-await) background task so a
+ * slow or failing transport never blocks the signup response. Returns the raw
+ * plaintext code (never persisted).
  */
 export async function issueVerificationCode(
   userId: string,
@@ -28,7 +32,7 @@ export async function issueVerificationCode(
     }),
   ]);
 
-  await sendVerificationCode(email, code);
+  void sendVerificationCode(email, code);
 
   return code;
 }
