@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     userId = user.id;
   }
 
-  await issueVerificationCode(userId!);
+  await issueVerificationCode(userId!, email);
 
   const response = NextResponse.json(
     {

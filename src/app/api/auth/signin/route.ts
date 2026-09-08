@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   }
 
   if (!user!.isVerified) {
-    await issueVerificationCode(user!.id);
+    await issueVerificationCode(user!.id, user!.email);
     const response = NextResponse.json(
       { message: "Please verify your email before signing in.", redirect: VERIFY_EMAIL_PATH },
       { status: 200 },

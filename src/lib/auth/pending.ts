@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { OTP_TTL_SECONDS, generateOtp, hashValue } from "./tokens";
+import { sendVerificationCode } from "@/lib/email/mailer";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -8,7 +9,10 @@ const RESEND_COOLDOWN_SECONDS = 60;
  * any previously active (unused) codes for the same user.
  * Returns the raw plaintext code (never persisted).
  */
-export async function issueVerificationCode(userId: string): Promise<string> {
+export async function issueVerificationCode(
+  userId: string,
+  email: string,
+): Promise<string> {
   const code = generateOtp();
   const codeHash = hashValue(code);
   const expiresAt = new Date(Date.now() + OTP_TTL_SECONDS * 1000);
@@ -24,9 +28,7 @@ export async function issueVerificationCode(userId: string): Promise<string> {
     }),
   ]);
 
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`[dev] verification code for ${userId}: ${code}`);
-  }
+  await sendVerificationCode(email, code);
 
   return code;
 }

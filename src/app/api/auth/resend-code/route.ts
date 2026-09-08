@@ -34,11 +34,11 @@ export async function POST(request: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, isVerified: true },
+    select: { id: true, email: true, isVerified: true },
   });
 
   if (user && !user.isVerified) {
-    await issueVerificationCode(user.id);
+    await issueVerificationCode(user.id, user.email);
     const response = NextResponse.json(
       { message: "Verification code sent.", redirect: VERIFY_EMAIL_PATH },
       { status: 200 },
