@@ -45,11 +45,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   }
 
   function validatePassword() {
-    const error = fieldError(
-      resetPasswordSchema.pick({ password: true }),
-      "password",
-      password,
-    );
+    const error = fieldError(resetPasswordSchema, "password", password);
     setFieldErrors((prev) => {
       const next = { ...prev };
       if (error) next.password = [error];
