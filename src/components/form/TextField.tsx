@@ -49,10 +49,10 @@ export function TextField({
           }
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy.length > 0 ? describedBy : undefined}
-          className={`w-full rounded-md border bg-surface-variant px-3 py-2.5 text-sm text-on-surface outline-none transition placeholder:text-on-surface-variant/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container ${
+          className={`w-full rounded-md border bg-surface px-3 py-2.5 text-sm text-on-surface outline-none transition-colors duration-150 placeholder:text-on-surface-variant/60 hover:border-on-surface-variant/40 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 ${
             error
               ? "border-error"
-              : "border-outline"
+              : "border-on-surface-variant/20"
           } ${isPassword ? "pr-10" : ""} ${className}`}
           {...rest}
         />
@@ -61,7 +61,7 @@ export function TextField({
             type="button"
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? "Hide password" : "Show password"}
-            className="absolute inset-y-0 right-0 flex items-center px-3 text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container"
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-on-surface-variant transition-colors hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
             {showPassword ? (
               <EyeOff className="h-4 w-4" />

@@ -23,7 +23,7 @@ interface AuthSearchParams {
 
 const modeLabels: Record<AuthMode, { title: string; subtitle: string }> = {
   [AUTH_MODES.signup]: {
-    title: "Create your account",
+    title: "Create an account",
     subtitle: "Enter your details below to create your account",
   },
   [AUTH_MODES.signin]: {
@@ -204,14 +204,8 @@ export default async function AuthPage({
       content = <SigninForm />;
       footer = (
         <div className="flex flex-col gap-1">
-          <Link
-            href={authPageUrl(AUTH_MODES.forgotPassword)}
-            className={linkClass}
-          >
-            Forgot password?
-          </Link>
           <p>
-            No account?{" "}
+            Don't have an account?{" "}
             <Link href={authPageUrl(AUTH_MODES.signup)} className={linkClass}>
               Create one
             </Link>

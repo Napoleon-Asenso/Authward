@@ -74,6 +74,35 @@ export const resendCodeSchema = z.object({
     .regex(EMAIL_REGEX, "Enter a valid email address."),
 });
 
+/**
+ * Client-side helpers so forms validate with the exact same schemas the
+ * server uses.
+ */
+export function fieldError<T extends z.ZodRawShape, K extends keyof T>(
+  schema: z.ZodObject<T>,
+  field: K,
+  value: string,
+): string | undefined {
+  const result = schema.safeParse({ [field]: value } as Record<string, string>);
+  if (result.success) return undefined;
+  return result.error.issues.find((issue) => issue.path[0] === field)?.message;
+}
+
+export function clientErrors<T extends z.ZodRawShape>(
+  schema: z.ZodObject<T>,
+  data: Record<string, string>,
+): Record<string, string[]> {
+  const result = schema.safeParse(data);
+  if (result.success) return {};
+  const errors: Record<string, string[]> = {};
+  for (const issue of result.error.issues) {
+    const key = String(issue.path[0] ?? "");
+    if (!errors[key]) errors[key] = [];
+    errors[key].push(issue.message);
+  }
+  return errors;
+}
+
 export type SignupInput = z.infer<typeof signupSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type SigninInput = z.infer<typeof signinSchema>;

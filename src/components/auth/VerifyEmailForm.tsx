@@ -5,6 +5,11 @@ import { TextField } from "@/components/form/TextField";
 import { FormAlert } from "./FormAlert";
 import { postJson } from "./api";
 import { API } from "@/lib/auth/constants";
+import {
+  clientErrors,
+  fieldError,
+  verifyEmailSchema,
+} from "@/lib/validation/auth";
 
 const COOLDOWN_SECONDS = 60;
 
@@ -35,10 +40,12 @@ export function VerifyEmailForm({ initialEmail }: { initialEmail: string }) {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const errors = clientErrors(verifyEmailSchema, { code });
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     setError(null);
     setInfo(null);
-    setFieldErrors({});
     const result = await postJson(API.verifyEmail, { code });
     setSubmitting(false);
     if (result.ok && result.redirect) {
@@ -48,6 +55,16 @@ export function VerifyEmailForm({ initialEmail }: { initialEmail: string }) {
     } else if (result.message) {
       setError(result.message);
     }
+  }
+
+  function validateCode() {
+    const error = fieldError(verifyEmailSchema, "code", code);
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      if (error) next.code = [error];
+      else delete next.code;
+      return next;
+    });
   }
 
   async function onResend() {
@@ -82,6 +99,7 @@ export function VerifyEmailForm({ initialEmail }: { initialEmail: string }) {
         placeholder="123456"
         value={code}
         onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+        onBlur={validateCode}
         error={fieldErrors.code?.[0]}
         helperText="Enter the 6-digit code sent to your email."
         required

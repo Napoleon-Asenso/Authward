@@ -5,6 +5,12 @@ import { TextField } from "@/components/form/TextField";
 import { FormAlert } from "./FormAlert";
 import { postJson } from "./api";
 import { API } from "@/lib/auth/constants";
+import {
+  clientErrors,
+  fieldError,
+  forgotPasswordSchema,
+  type ForgotPasswordInput,
+} from "@/lib/validation/auth";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -15,9 +21,11 @@ export function ForgotPasswordForm() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const errors = clientErrors(forgotPasswordSchema, { email });
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     setError(null);
-    setFieldErrors({});
     setMessage(null);
     const result = await postJson(API.forgotPassword, { email });
     setSubmitting(false);
@@ -28,6 +36,16 @@ export function ForgotPasswordForm() {
     } else {
       setError("Something went wrong. Please try again.");
     }
+  }
+
+  function validateEmail() {
+    const error = fieldError(forgotPasswordSchema, "email", email);
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      if (error) next.email = [error];
+      else delete next.email;
+      return next;
+    });
   }
 
   return (
@@ -50,6 +68,7 @@ export function ForgotPasswordForm() {
         autoComplete="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        onBlur={validateEmail}
         error={fieldErrors.email?.[0]}
         required
       />
@@ -58,7 +77,7 @@ export function ForgotPasswordForm() {
         disabled={submitting}
         className="mt-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {submitting ? "Sending…" : "Send reset link"}
+        {submitting ? "Sending…" : "Send Reset Link"}
       </button>
     </form>
   );

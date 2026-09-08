@@ -1,10 +1,17 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { TextField } from "@/components/form/TextField";
 import { FormAlert } from "./FormAlert";
 import { postJson } from "./api";
-import { API } from "@/lib/auth/constants";
+import { API, FORGOT_PASSWORD_PATH } from "@/lib/auth/constants";
+import {
+  clientErrors,
+  fieldError,
+  signinSchema,
+  type SigninInput,
+} from "@/lib/validation/auth";
 
 export function SigninForm() {
   const [email, setEmail] = useState("");
@@ -15,9 +22,11 @@ export function SigninForm() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const errors = clientErrors(signinSchema, { email, password });
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     setError(null);
-    setFieldErrors({});
     const result = await postJson(API.signin, { email, password });
     setSubmitting(false);
     if (result.ok && result.redirect) {
@@ -31,6 +40,16 @@ export function SigninForm() {
     }
   }
 
+  function validateField(field: keyof SigninInput, value: string) {
+    const error = fieldError(signinSchema, field, value);
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      if (error) next[field] = [error];
+      else delete next[field];
+      return next;
+    });
+  }
+
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <FormAlert message={error} />
@@ -42,6 +61,7 @@ export function SigninForm() {
         autoComplete="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        onBlur={() => validateField("email", email)}
         error={fieldErrors.email?.[0]}
         required
       />
@@ -53,9 +73,18 @@ export function SigninForm() {
         autoComplete="current-password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        onBlur={() => validateField("password", password)}
         error={fieldErrors.password?.[0]}
         required
       />
+      <div className="-mt-2 flex justify-end">
+        <Link
+          href={FORGOT_PASSWORD_PATH}
+          className="text-xs font-medium text-primary underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+        >
+          Forgot password?
+        </Link>
+      </div>
       <button
         type="submit"
         disabled={submitting}

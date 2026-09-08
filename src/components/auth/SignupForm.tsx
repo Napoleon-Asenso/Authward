@@ -5,6 +5,12 @@ import { TextField } from "@/components/form/TextField";
 import { FormAlert } from "./FormAlert";
 import { postJson } from "./api";
 import { API } from "@/lib/auth/constants";
+import {
+  clientErrors,
+  fieldError,
+  signupSchema,
+  type SignupInput,
+} from "@/lib/validation/auth";
 
 export function SignupForm() {
   const [name, setName] = useState("");
@@ -16,9 +22,11 @@ export function SignupForm() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const errors = clientErrors(signupSchema, { name, email, password });
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     setError(null);
-    setFieldErrors({});
     const result = await postJson(API.signup, { name, email, password });
     setSubmitting(false);
     if (result.ok && result.redirect) {
@@ -32,16 +40,27 @@ export function SignupForm() {
     }
   }
 
+  function validateField(field: keyof SignupInput, value: string) {
+    const error = fieldError(signupSchema, field, value);
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      if (error) next[field] = [error];
+      else delete next[field];
+      return next;
+    });
+  }
+
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <FormAlert message={error} />
       <TextField
         id="signup-name"
         label="Full Name"
-        placeholder="e.g. Jane Doe"
+        placeholder="Full Name"
         autoComplete="name"
         value={name}
         onChange={(e) => setName(e.target.value)}
+        onBlur={() => validateField("name", name)}
         error={fieldErrors.name?.[0]}
         required
       />
@@ -53,6 +72,7 @@ export function SignupForm() {
         autoComplete="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        onBlur={() => validateField("email", email)}
         error={fieldErrors.email?.[0]}
         required
       />
@@ -64,6 +84,7 @@ export function SignupForm() {
         autoComplete="new-password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        onBlur={() => validateField("password", password)}
         error={fieldErrors.password?.[0]}
         helperText="8-72 characters with uppercase, lowercase, number and symbol."
         required

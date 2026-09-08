@@ -5,6 +5,12 @@ import { TextField } from "@/components/form/TextField";
 import { FormAlert } from "./FormAlert";
 import { postJson } from "./api";
 import { API } from "@/lib/auth/constants";
+import {
+  clientErrors,
+  fieldError,
+  resetPasswordSchema,
+  type ResetPasswordInput,
+} from "@/lib/validation/auth";
 
 interface ResetPasswordFormProps {
   token: string;
@@ -18,9 +24,13 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const errors = clientErrors(resetPasswordSchema.pick({ password: true }), {
+      password,
+    });
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     setError(null);
-    setFieldErrors({});
     const result = await postJson(API.resetPassword, { token, password });
     setSubmitting(false);
     if (result.ok && result.redirect) {
@@ -34,6 +44,20 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     }
   }
 
+  function validatePassword() {
+    const error = fieldError(
+      resetPasswordSchema.pick({ password: true }),
+      "password",
+      password,
+    );
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      if (error) next.password = [error];
+      else delete next.password;
+      return next;
+    });
+  }
+
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <FormAlert message={error} />
@@ -45,6 +69,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         autoComplete="new-password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        onBlur={validatePassword}
         error={fieldErrors.password?.[0]}
         helperText="8-72 characters with uppercase, lowercase, number and symbol."
         required
