@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { verifyPasswordConstantTime } from "@/lib/auth/hash";
 import { issueVerificationCode } from "@/lib/auth/pending";
@@ -11,6 +11,7 @@ import {
   sessionCookieOptions,
   signPending,
 } from "@/lib/auth/cookies";
+import { requireCsrf, rotateCsrf } from "@/lib/auth/csrf";
 import {
   fieldErrorsFrom,
   readJson,
@@ -25,7 +26,10 @@ import {
   VERIFY_EMAIL_PATH,
 } from "@/lib/auth/constants";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const csrf = requireCsrf(request);
+  if (csrf) return csrf;
+
   const body = await readJson(request);
   const parsed = signinSchema.safeParse(body);
   if (!parsed.success) {
@@ -63,6 +67,9 @@ export async function POST(request: Request) {
       signPending(user!.id),
       pendingCookieOptions(),
     );
+    // Credential proof succeeded; rotate the pre-login CSRF attachment so the
+    // token observed before login cannot be reused against this identity.
+    rotateCsrf(response);
     return response;
   }
 
@@ -74,5 +81,7 @@ export async function POST(request: Request) {
     { status: 200 },
   );
   response.cookies.set(SESSION_COOKIE, sessionToken, sessionCookieOptions());
+  // Rotate the CSRF token after login to break any pre-login fixation.
+  rotateCsrf(response);
   return response;
 }

@@ -32,6 +32,7 @@ export const DASHBOARD_PATH = "/dashboard";
 
 export const PENDING_COOKIE = "pending_verification_token";
 export const SESSION_COOKIE = "session_token";
+export const CSRF_COOKIE = "csrf_token";
 
 export const API = {
   signup: "/api/auth/signup",

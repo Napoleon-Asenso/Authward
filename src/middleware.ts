@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   AUTH_MODES,
   AUTH_PATH,
+  CSRF_COOKIE,
   DASHBOARD_PATH,
   PENDING_COOKIE,
   SESSION_COOKIE,
@@ -10,6 +11,10 @@ import {
   authPageUrl,
   type AuthMode,
 } from "@/lib/auth/constants";
+import {
+  csrfCookieOptions,
+  generateCsrfToken,
+} from "@/lib/auth/csrf";
 
 const LEGACY_AUTH_PATHS: Partial<Record<string, AuthMode>> = {
   "/signin": AUTH_MODES.signin,
@@ -18,6 +23,18 @@ const LEGACY_AUTH_PATHS: Partial<Record<string, AuthMode>> = {
   "/forgot-password": AUTH_MODES.forgotPassword,
   "/reset-password": AUTH_MODES.resetPassword,
 };
+
+/**
+ * Pre-login CSRF attachment: anonymous visitors get a fresh token cookie on
+ * their first page load. Existing tokens are left untouched; the token is only
+ * rotated at login / password reset and cleared at logout.
+ */
+function ensureCsrf(response: NextResponse, request: NextRequest): NextResponse {
+  if (!request.cookies.get(CSRF_COOKIE)?.value) {
+    response.cookies.set(CSRF_COOKIE, generateCsrfToken(), csrfCookieOptions());
+  }
+  return response;
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -36,41 +53,59 @@ export function middleware(request: NextRequest) {
       !hasPending &&
       !hasSession
     ) {
-      return NextResponse.redirect(new URL(SIGN_UP_PATH, request.url));
+      return ensureCsrf(
+        NextResponse.redirect(new URL(SIGN_UP_PATH, request.url)),
+        request,
+      );
     }
     const args = request.nextUrl.searchParams;
     const params: Record<string, string> = {};
     if (legacyMode === AUTH_MODES.resetPassword && args.get("token")) {
       params.token = args.get("token")!;
     }
-    return NextResponse.redirect(
-      new URL(authPageUrl(legacyMode, params), request.url),
+    return ensureCsrf(
+      NextResponse.redirect(
+        new URL(authPageUrl(legacyMode, params), request.url),
+      ),
+      request,
     );
   }
 
   if (pathname === DASHBOARD_PATH && !hasSession) {
-    return NextResponse.redirect(new URL(SIGN_IN_PATH, request.url));
+    return ensureCsrf(
+      NextResponse.redirect(new URL(SIGN_IN_PATH, request.url)),
+      request,
+    );
   }
 
   if (pathname === AUTH_PATH) {
     const mode = request.nextUrl.searchParams.get("mode");
 
     if (hasSession) {
-      return NextResponse.redirect(new URL(DASHBOARD_PATH, request.url));
+      return ensureCsrf(
+        NextResponse.redirect(new URL(DASHBOARD_PATH, request.url)),
+        request,
+      );
     }
 
     if (mode === AUTH_MODES.verifyEmail && !hasPending) {
-      return NextResponse.redirect(new URL(SIGN_UP_PATH, request.url));
+      return ensureCsrf(
+        NextResponse.redirect(new URL(SIGN_UP_PATH, request.url)),
+        request,
+      );
     }
   }
 
   if (pathname === "/") {
-    return NextResponse.redirect(
-      new URL(hasSession ? DASHBOARD_PATH : SIGN_UP_PATH, request.url),
+    return ensureCsrf(
+      NextResponse.redirect(
+        new URL(hasSession ? DASHBOARD_PATH : SIGN_UP_PATH, request.url),
+      ),
+      request,
     );
   }
 
-  return NextResponse.next();
+  return ensureCsrf(NextResponse.next(), request);
 }
 
 export const config = {

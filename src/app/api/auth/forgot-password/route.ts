@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { RESET_TTL_SECONDS, generateResetToken, hashValue } from "@/lib/auth/tokens";
 import { sendPasswordResetLink } from "@/lib/email/mailer";
+import { requireCsrf } from "@/lib/auth/csrf";
 import {
   fieldErrorsFrom,
   readJson,
@@ -15,7 +16,10 @@ import { FORGOT_PASSWORD_PATH } from "@/lib/auth/constants";
 const GENERIC_MESSAGE =
   "If an account exists, a reset link has been sent.";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const csrf = requireCsrf(request);
+  if (csrf) return csrf;
+
   const body = await readJson(request);
   const parsed = forgotPasswordSchema.safeParse(body);
   if (!parsed.success) {

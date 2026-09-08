@@ -1,3 +1,5 @@
+import { CSRF_COOKIE } from "@/lib/auth/constants";
+
 export interface ApiResult {
   ok: boolean;
   status: number;
@@ -15,13 +17,29 @@ interface JsonShape {
   resetToken?: unknown;
 }
 
+/**
+ * Read the double-submit CSRF cookie set by the server and echo it back as a
+ * header so mutating endpoints can verify origin authenticity.
+ */
+function csrfHeader(): string | undefined {
+  const cookie = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${CSRF_COOKIE}=`));
+  return cookie ? cookie.slice(CSRF_COOKIE.length + 1) : undefined;
+}
+
 export async function postJson(
   url: string,
   payload: unknown,
 ): Promise<ApiResult> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const csrf = csrfHeader();
+  if (csrf) headers["x-csrf-token"] = csrf;
+
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(payload),
   });
 

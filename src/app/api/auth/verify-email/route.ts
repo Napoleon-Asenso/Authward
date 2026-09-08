@@ -6,6 +6,7 @@ import {
   expiredCookieOptions,
   verifySigned,
 } from "@/lib/auth/cookies";
+import { requireCsrf } from "@/lib/auth/csrf";
 import {
   fieldErrorsFrom,
   readJson,
@@ -14,9 +15,14 @@ import {
 import { verifyEmailSchema } from "@/lib/validation/auth";
 import { badRequest } from "@/lib/auth/http";
 import { unauthorized } from "@/lib/auth/http";
+import { rateLimitVerifyEmail } from "@/lib/rate-limit/limiter";
+import { tooManyRequests } from "@/lib/auth/http";
 import { SIGN_IN_PATH } from "@/lib/auth/constants";
 
 export async function POST(request: NextRequest) {
+  const csrf = requireCsrf(request);
+  if (csrf) return csrf;
+
   const body = await readJson(request);
   const parsed = verifyEmailSchema.safeParse(body);
   if (!parsed.success) {
@@ -27,6 +33,12 @@ export async function POST(request: NextRequest) {
   const userId = signed ? verifySigned(signed) : null;
   if (!userId) {
     return unauthorized("No pending verification session found.");
+  }
+
+  // Every failed attempt has a cost.
+  const verified = await rateLimitVerifyEmail(userId);
+  if (!verified.allowed) {
+    return tooManyRequests(verified.retryAfterSeconds);
   }
 
   const user = await prisma.user.findFirst({

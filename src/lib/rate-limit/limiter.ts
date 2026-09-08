@@ -66,6 +66,7 @@ export const Limits = {
   signinPair: { limit: 5, windowMs: 15 * MINUTE },
   resendPin: { limit: 1, windowMs: MINUTE },
   forgotPassword: { limit: 3, windowMs: HOUR },
+  verifyCode: { limit: 5, windowMs: 15 * MINUTE },
 } as const;
 
 export function rateLimitSignup(ip: string): RateLimitResult {
@@ -99,6 +100,14 @@ export function rateLimitForgotPassword(email: string): RateLimitResult {
     `forgot:${normalizeEmail(email)}`,
     Limits.forgotPassword.limit,
     Limits.forgotPassword.windowMs,
+  );
+}
+
+export function rateLimitVerifyEmail(userId: string): RateLimitResult {
+  return consume(
+    `verify:${userId}`,
+    Limits.verifyCode.limit,
+    Limits.verifyCode.windowMs,
   );
 }
 

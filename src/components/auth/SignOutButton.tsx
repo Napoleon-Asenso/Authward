@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { API, SIGN_IN_PATH } from "@/lib/auth/constants";
+import { API, CSRF_COOKIE, SIGN_IN_PATH } from "@/lib/auth/constants";
+
+function csrfHeader(): string | undefined {
+  const cookie = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${CSRF_COOKIE}=`));
+  return cookie ? cookie.slice(CSRF_COOKIE.length + 1) : undefined;
+}
 
 export function SignOutButton() {
   const [busy, setBusy] = useState(false);
@@ -9,7 +17,10 @@ export function SignOutButton() {
   async function onSignOut() {
     setBusy(true);
     try {
-      await fetch(API.signout, { method: "POST" });
+      const headers: Record<string, string> = {};
+      const csrf = csrfHeader();
+      if (csrf) headers["x-csrf-token"] = csrf;
+      await fetch(API.signout, { method: "POST", headers });
     } finally {
       window.location.assign(SIGN_IN_PATH);
     }

@@ -33,6 +33,10 @@ export function unprocessable(
   );
 }
 
+export function forbidden(message: string): NextResponse {
+  return NextResponse.json({ error: message }, { status: 403 });
+}
+
 export function unauthorized(message: string): NextResponse {
   return NextResponse.json({ error: message }, { status: 401 });
 }

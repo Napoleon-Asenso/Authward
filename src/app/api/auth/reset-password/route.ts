@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { hashPassword } from "@/lib/auth/hash";
 import { SIGN_IN_PATH } from "@/lib/auth/constants";
 import { SESSION_COOKIE } from "@/lib/auth/cookies";
 import { hashValue } from "@/lib/auth/tokens";
+import { requireCsrf, rotateCsrf } from "@/lib/auth/csrf";
 import {
   fieldErrorsFrom,
   readJson,
@@ -16,7 +17,10 @@ import { resetPasswordSchema } from "@/lib/validation/auth";
 
 const RESET_LIMIT = { limit: 5, windowMs: 15 * 60 * 1000 };
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const csrf = requireCsrf(request);
+  if (csrf) return csrf;
+
   const body = await readJson(request);
   const parsed = resetPasswordSchema.safeParse(body);
   if (!parsed.success) {
@@ -57,7 +61,8 @@ export async function POST(request: Request) {
     { message: "Password reset successfully.", redirect: SIGN_IN_PATH },
     { status: 200 },
   );
-  // A reset invalidates any existing sessions server-side; clear the cookie too.
+  // A reset invalidates any existing sessions server-side; clear the cookie too
+  // and rotate the CSRF token since password reset is part of login security.
   response.cookies.set(SESSION_COOKIE, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -65,5 +70,6 @@ export async function POST(request: Request) {
     path: "/",
     maxAge: 0,
   });
+  rotateCsrf(response);
   return response;
 }

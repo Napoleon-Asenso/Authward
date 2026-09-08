@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { issueVerificationCode } from "@/lib/auth/pending";
 import {
@@ -6,6 +6,7 @@ import {
   pendingCookieOptions,
   signPending,
 } from "@/lib/auth/cookies";
+import { requireCsrf } from "@/lib/auth/csrf";
 import {
   fieldErrorsFrom,
   readJson,
@@ -19,7 +20,10 @@ import { VERIFY_EMAIL_PATH } from "@/lib/auth/constants";
 const GENERIC_MESSAGE =
   "If an account exists, a verification code has been sent.";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const csrf = requireCsrf(request);
+  if (csrf) return csrf;
+
   const body = await readJson(request);
   const parsed = resendCodeSchema.safeParse(body);
   if (!parsed.success) {
