@@ -9,6 +9,7 @@ export interface ApiResult {
 
 interface JsonShape {
   message?: unknown;
+  error?: unknown;
   fieldErrors?: unknown;
   redirect?: unknown;
   resetToken?: unknown;
@@ -31,10 +32,17 @@ export async function postJson(
     data = {};
   }
 
+  const errorMessage =
+    typeof data.message === "string"
+      ? data.message
+      : typeof data.error === "string"
+        ? data.error
+        : undefined;
+
   return {
     ok: res.ok,
     status: res.status,
-    message: typeof data.message === "string" ? data.message : undefined,
+    message: errorMessage,
     fieldErrors:
       data.fieldErrors && typeof data.fieldErrors === "object"
         ? (data.fieldErrors as Record<string, string[]>)
