@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { RESET_TTL_SECONDS, generateResetToken, hashValue } from "@/lib/auth/tokens";
+import { sendPasswordResetLink } from "@/lib/email/mailer";
 import {
   fieldErrorsFrom,
   readJson,
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, isVerified: true },
+    select: { id: true, email: true, isVerified: true },
   });
 
   if (user?.isVerified) {
@@ -49,6 +50,10 @@ export async function POST(request: Request) {
         },
       }),
     ]);
+
+    // Deliver the reset link to the user's own inbox in the background; the
+    // API still returns the uniform generic message regardless of existence.
+    void sendPasswordResetLink(user.email, resetToken);
 
     if (process.env.NODE_ENV !== "production") {
       return NextResponse.json(

@@ -40,6 +40,10 @@ export async function issueVerificationCode(
 /**
  * Validates and atomically consumes a submitted code for the given user.
  * Accepts a code only if it matches the stored hash, is unused and unexpired.
+ *
+ * On success the user's temporary verification records are permanently deleted
+ * (not merely marked used): once the email is verified no pending codes should
+ * remain in the database.
  */
 export async function consumeVerificationCode(
   code: string,
@@ -52,9 +56,8 @@ export async function consumeVerificationCode(
   if (!record) return false;
   if (record.expiresAt.getTime() <= Date.now()) return false;
 
-  await prisma.verificationCode.update({
-    where: { id: record.id },
-    data: { isUsed: true },
+  await prisma.verificationCode.deleteMany({
+    where: { userId },
   });
   return true;
 }
