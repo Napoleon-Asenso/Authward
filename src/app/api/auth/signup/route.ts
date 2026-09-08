@@ -14,7 +14,7 @@ import {
   unprocessable,
 } from "@/lib/auth/http";
 import { getClientIp, rateLimitSignup } from "@/lib/rate-limit/limiter";
-import { signupSchema } from "@/lib/validation/auth";
+import { signupSchema, normalizeFullName } from "@/lib/validation/auth";
 import { VERIFY_EMAIL_PATH } from "@/lib/auth/constants";
 
 export async function POST(request: Request) {
@@ -49,7 +49,11 @@ export async function POST(request: Request) {
   if (!existing) {
     const passwordHash = await hashPassword(parsed.data.password);
     const user = await prisma.user.create({
-      data: { email, name, passwordHash },
+      data: {
+        email,
+        name: normalizeFullName(parsed.data.name),
+        passwordHash,
+      },
     });
     userId = user.id;
   }

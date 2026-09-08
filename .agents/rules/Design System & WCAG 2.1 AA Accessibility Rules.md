@@ -22,7 +22,7 @@ The application supports Light and Dark mode using the Matisse token system. Tai
 * **Surface / Background (`hsl(300, 56%, 98%)` Light / `hsl(270, 7%, 11%)` Dark):** Main authentication card containers and body background.
 * **Surface Variant (`hsl(276, 19%, 90%)` Light / `hsl(257, 5%, 29%)` Dark):** Input backgrounds, card headers, and secondary container fills.
 * **Outline (`hsl(262, 3%, 48%)` Light / `hsl(267, 4%, 58%)` Dark):** Form input borders, dividers, and structural outlines.
-* **Error (`hsl(300, 100%, 50%)`):** Form error messages, invalid field borders, and high-severity notification banners.
+* **Error (`hsl(0, 100%, 50%)`):** Form error messages, invalid field borders, and high-severity notification banners.
 
 ### Typography Tokens
 * **Font Family:** `Roboto` (sans, display, mono).
@@ -58,8 +58,8 @@ Every form element across `/signup`, `/verify-email`, `/signin`, `/forgot-passwo
    * Visual indicator: Opacity reduced to `opacity-50`, cursor set to `cursor-not-allowed`.
    * Primary submit button MUST render an inline SVG loading spinner when processing actions.
 4. **Error State:**
-   * Input border: `border-[hsl(300,100%,50%)]` (`error-color`).
-   * Inline message text: `text-[hsl(300,100%,50%)]`.
+   * Input border: `border-[hsl(0,100%,50%)]` (`error-color`).
+   * Inline message text: `text-[hsl(0,100%,50%)]`.
 
 ---
 

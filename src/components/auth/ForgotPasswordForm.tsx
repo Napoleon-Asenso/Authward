@@ -38,6 +38,19 @@ export function ForgotPasswordForm() {
     }
   }
 
+  function validateEmailLive(value: string) {
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      const flag = value.length > 0 && !value.includes("@");
+      if (flag) {
+        next.email = ["Please include an @ followed by the domain (e.g. you@example.com)."];
+      } else {
+        delete next.email;
+      }
+      return next;
+    });
+  }
+
   function validateEmail() {
     const error = fieldError(forgotPasswordSchema, "email", email);
     setFieldErrors((prev) => {
@@ -67,8 +80,12 @@ export function ForgotPasswordForm() {
         placeholder="you@example.com"
         autoComplete="email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(e) => {
+          setEmail(e.target.value);
+          validateEmailLive(e.target.value);
+        }}
         onBlur={validateEmail}
+        completed={message !== null}
         error={fieldErrors.email?.[0]}
         required
       />

@@ -19,10 +19,10 @@
   --on-tertiary-color: hsl(0, 0%, 100%);
   --tertiary-container-color: hsl(304, 100%, 83%);
   --on-tertiary-container-color: hsl(297, 100%, 26%);
-  --error-color: hsl(300, 100%, 50%);
+  --error-color: hsl(0, 100%, 50%);
   --on-error-color: hsl(0, 0%, 100%);
-  --error-container-color: hsl(300, 100%, 92%);
-  --on-error-container-color: hsl(300, 100%, 27%);
+  --error-container-color: hsl(0, 100%, 92%);
+  --on-error-container-color: hsl(0, 100%, 27%);
   --background-color: hsl(300, 56%, 98%);
   --on-background-color: hsl(270, 7%, 11%);
   --surface-color: hsl(300, 56%, 98%);
@@ -155,10 +155,10 @@ html[data-theme="dark"] {
   --on-tertiary-color: hsl(297, 100%, 19%);
   --tertiary-container-color: hsl(297, 100%, 26%);
   --on-tertiary-container-color: hsl(310, 100%, 92%);
-  --error-color: hsl(300, 100%, 50%);
+  --error-color: hsl(0, 100%, 50%);
   --on-error-color: hsl(0, 0%, 100%);
-  --error-container-color: hsl(300, 100%, 20%);
-  --on-error-container-color: hsl(300, 100%, 90%);
+  --error-container-color: hsl(0, 100%, 20%);
+  --on-error-container-color: hsl(0, 100%, 90%);
   --background-color: hsl(270, 7%, 11%);
   --on-background-color: hsl(290, 11%, 89%);
   --surface-color: hsl(270, 7%, 11%);

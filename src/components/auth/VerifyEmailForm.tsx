@@ -20,6 +20,7 @@ export function VerifyEmailForm({ initialEmail }: { initialEmail: string }) {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [resending, setResending] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [cooldown, setCooldown] = useState(COOLDOWN_SECONDS);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -49,6 +50,7 @@ export function VerifyEmailForm({ initialEmail }: { initialEmail: string }) {
     const result = await postJson(API.verifyEmail, { code });
     setSubmitting(false);
     if (result.ok && result.redirect) {
+      setSubmitted(true);
       window.location.assign(result.redirect);
     } else if (result.fieldErrors) {
       setFieldErrors(result.fieldErrors);
@@ -100,6 +102,7 @@ export function VerifyEmailForm({ initialEmail }: { initialEmail: string }) {
         value={code}
         onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
         onBlur={validateCode}
+        completed={submitted}
         error={fieldErrors.code?.[0]}
         helperText="Enter the 6-digit code sent to your email."
         required

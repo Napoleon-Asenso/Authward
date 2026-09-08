@@ -21,6 +21,14 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const passwordCompliant =
+    /^.{8,72}$/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,6 +42,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     const result = await postJson(API.resetPassword, { token, password });
     setSubmitting(false);
     if (result.ok && result.redirect) {
+      setSubmitted(true);
       window.location.assign(result.redirect);
     } else if (result.fieldErrors) {
       setFieldErrors(result.fieldErrors);
@@ -66,13 +75,13 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         onBlur={validatePassword}
+        completed={submitted}
         error={fieldErrors.password?.[0]}
-        helperText="8-72 characters with uppercase, lowercase, number and symbol."
         required
       />
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !passwordCompliant}
         className="mt-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container disabled:cursor-not-allowed disabled:opacity-50"
       >
         {submitting ? "Resetting…" : "Reset password"}

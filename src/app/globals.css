@@ -13,9 +13,9 @@
   --on-surface-variant: 262 8% 32%;
   --surface-container: 0 0% 100%;
   --outline: 262 3% 48%;
-  --error: 300 100% 50%;
-  --error-container: 300 100% 92%;
-  --on-error-container: 300 100% 27%;
+  --error: 0 100% 50%;
+  --error-container: 0 100% 92%;
+  --on-error-container: 0 100% 27%;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -30,9 +30,9 @@
     --on-surface-variant: 300 10% 78%;
     --surface-container: 300 24% 11%;
     --outline: 300 10% 55%;
-    --error: 300 100% 72%;
-    --error-container: 300 45% 20%;
-    --on-error-container: 300 100% 90%;
+    --error: 0 100% 72%;
+    --error-container: 0 45% 20%;
+    --on-error-container: 0 100% 90%;
   }
 }
 

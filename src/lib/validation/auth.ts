@@ -20,12 +20,43 @@ export const passwordSchema = z
   .regex(/\d/, "Password must contain at least one digit.")
   .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character.");
 
+/**
+ * Full name policy: at least two words (first + last name), each consisting
+ * of letters only, separated by a single space (no numbers, symbols, or
+ * consecutive/empty words). First/middle/last parts are derived at the app
+ * layer; the database keeps a single normalized `name` column per the PRD.
+ */
+export const NAME_REGEX = /^[A-Za-z]+(?:\s[A-Za-z]+)+$/;
+
+export interface FullName {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+}
+
+export function splitFullName(value: string): FullName {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  const [firstName = "", ...rest] = parts;
+  const lastName = rest.length > 0 ? rest[rest.length - 1] : "";
+  const middleName =
+    rest.length > 1 ? rest.slice(0, -1).join(" ") : "";
+  return { firstName, middleName, lastName };
+}
+
+export function normalizeFullName(value: string): string {
+  return value.trim().split(/\s+/).filter(Boolean).join(" ");
+}
+
 export const signupSchema = z.object({
   name: z
     .string()
     .trim()
     .min(1, "Name is required.")
-    .max(100, "Name must be at most 100 characters."),
+    .max(100, "Name must be at most 100 characters.")
+    .regex(
+      NAME_REGEX,
+      "Please enter at least a first and last name using letters only (single space between names).",
+    ),
   email: z
     .string()
     .trim()

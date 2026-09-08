@@ -19,6 +19,7 @@ export function SigninForm() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,6 +31,7 @@ export function SigninForm() {
     const result = await postJson(API.signin, { email, password });
     setSubmitting(false);
     if (result.ok && result.redirect) {
+      setSubmitted(true);
       window.location.assign(result.redirect);
     } else if (result.fieldErrors) {
       setFieldErrors(result.fieldErrors);
@@ -38,6 +40,19 @@ export function SigninForm() {
     } else {
       setError("Something went wrong. Please try again.");
     }
+  }
+
+  function validateEmailLive(value: string) {
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      const flag = value.length > 0 && !value.includes("@");
+      if (flag) {
+        next.email = ["Please include an @ followed by the domain (e.g. you@example.com)."];
+      } else {
+        delete next.email;
+      }
+      return next;
+    });
   }
 
   function validateField(field: keyof SigninInput, value: string) {
@@ -60,8 +75,12 @@ export function SigninForm() {
         placeholder="you@example.com"
         autoComplete="email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(e) => {
+          setEmail(e.target.value);
+          validateEmailLive(e.target.value);
+        }}
         onBlur={() => validateField("email", email)}
+        completed={submitted}
         error={fieldErrors.email?.[0]}
         required
       />
@@ -74,6 +93,7 @@ export function SigninForm() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         onBlur={() => validateField("password", password)}
+        completed={submitted}
         error={fieldErrors.password?.[0]}
         required
       />
