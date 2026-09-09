@@ -1,10 +1,12 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 
-/** Seconds these single-use codes/tokens remain valid. */
-export const OTP_TTL_SECONDS = 15 * 60;
-export const RESET_TTL_SECONDS = 15 * 60;
-export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
-export const PENDING_COOKIE_TTL_SECONDS = 15 * 60;
+/** Seconds these single-use codes/tokens remain valid (see ./constants). */
+export {
+  OTP_TTL_SECONDS,
+  RESET_TTL_SECONDS,
+  SESSION_TTL_SECONDS,
+  PENDING_COOKIE_TTL_SECONDS,
+} from "./constants";
 
 /**
  * Deterministic hash of a raw token/code. Raw codes are stored nowhere; only

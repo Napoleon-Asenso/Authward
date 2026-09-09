@@ -1,13 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { CSRF_COOKIE } from "./constants";
+import { csrfCookieOptions } from "./cookie-config";
 import { forbidden } from "./http";
 
-/**
- * CSRF token TTL. Treated as a session-scoped attachment: it is issued for
- * anonymous visitors, rotated on login (and password reset), and cleared on
- * logout so a pre-login token never outlives the authentication boundary.
- */
-const CSRF_TTL_SECONDS = 60 * 60 * 24;
+export { csrfCookieOptions } from "./cookie-config";
 
 /**
  * Cryptographically random 256-bit token. Uses the Web Crypto platform API so
@@ -20,17 +16,6 @@ export function generateCsrfToken(): string {
   return Array.from(bytes)
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
-}
-
-/** Cookies are readable by client JS so forms can echo the token as a header. */
-export function csrfCookieOptions() {
-  return {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    path: "/",
-    maxAge: CSRF_TTL_SECONDS,
-  };
 }
 
 /** Constant-time compare without Node-only crypto (works in Edge too). */

@@ -1,6 +1,5 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { OTP_TTL_SECONDS, RESET_TTL_SECONDS } from "@/lib/auth/tokens";
-import { AUTH_MODES, authPageUrl } from "@/lib/auth/constants";
 
 const SEND_ATTEMPTS = 3;
 const TRANSPORT_TIMEOUT_MS = 15_000;
@@ -127,7 +126,7 @@ export async function sendPasswordResetLink(
   token: string,
 ): Promise<string | null> {
   const minutes = Math.floor(RESET_TTL_SECONDS / 60);
-  const link = `${appBaseUrl()}${authPageUrl(AUTH_MODES.resetPassword, { token })}`;
+  const link = `${appBaseUrl()}/reset-password?token=${encodeURIComponent(token)}`;
   console.log(`[dev mail] reset link for ${to}: ${link}`);
   return sendMail(
     to,

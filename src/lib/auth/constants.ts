@@ -35,6 +35,14 @@ export const SESSION_COOKIE = "session_token";
 export const CSRF_COOKIE = "csrf_token";
 export const EMAIL_MEMORY_COOKIE = "auth_email_memory";
 
+/** Cookie/TTL configuration (seconds). Single source of truth for all auth cookies. */
+export const OTP_TTL_SECONDS = 15 * 60;
+export const RESET_TTL_SECONDS = 15 * 60;
+export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days (PRD: 604800)
+export const PENDING_COOKIE_TTL_SECONDS = 15 * 60;
+export const CSRF_TTL_SECONDS = 60 * 60 * 24;
+export const EMAIL_MEMORY_TTL_SECONDS = 7 * 24 * 60 * 60;
+
 export const API = {
   signup: "/api/auth/signup",
   verifyEmail: "/api/auth/verify-email",

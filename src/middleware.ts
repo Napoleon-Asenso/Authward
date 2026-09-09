@@ -21,7 +21,6 @@ const LEGACY_AUTH_PATHS: Partial<Record<string, AuthMode>> = {
   "/signup": AUTH_MODES.signup,
   "/verify-email": AUTH_MODES.verifyEmail,
   "/forgot-password": AUTH_MODES.forgotPassword,
-  "/reset-password": AUTH_MODES.resetPassword,
 };
 
 /**
@@ -58,14 +57,9 @@ export function middleware(request: NextRequest) {
         request,
       );
     }
-    const args = request.nextUrl.searchParams;
-    const params: Record<string, string> = {};
-    if (legacyMode === AUTH_MODES.resetPassword && args.get("token")) {
-      params.token = args.get("token")!;
-    }
     return ensureCsrf(
       NextResponse.redirect(
-        new URL(authPageUrl(legacyMode, params), request.url),
+        new URL(authPageUrl(legacyMode), request.url),
       ),
       request,
     );
@@ -81,7 +75,12 @@ export function middleware(request: NextRequest) {
   if (pathname === AUTH_PATH) {
     const mode = request.nextUrl.searchParams.get("mode");
 
-    if (hasSession) {
+    // A signed-in user must still be able to reset a forgotten password, so
+    // the password-recovery modes are exempt from the session redirect.
+    const recoveryMode =
+      mode === AUTH_MODES.resetPassword || mode === AUTH_MODES.forgotPassword;
+
+    if (hasSession && !recoveryMode) {
       return ensureCsrf(
         NextResponse.redirect(new URL(DASHBOARD_PATH, request.url)),
         request,

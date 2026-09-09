@@ -1,10 +1,11 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import {
-  PENDING_COOKIE_TTL_SECONDS,
-  SESSION_TTL_SECONDS,
-} from "./tokens";
 
 export { PENDING_COOKIE, SESSION_COOKIE } from "./constants";
+export {
+  expiredCookieOptions,
+  pendingCookieOptions,
+  sessionCookieOptions,
+} from "./cookie-config";
 
 function authSecret(): string {
   const secret = process.env.AUTH_SECRET;
@@ -35,20 +36,3 @@ export function verifySigned(signed: string): string | null {
   if (a.length !== b.length) return null;
   return timingSafeEqual(a, b) ? payload : null;
 }
-
-/** Uniform cookie attribute set mandated by the PRD. */
-export function buildCookieOptions(maxAge: number) {
-  return {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    path: "/",
-    maxAge,
-  };
-}
-
-export const pendingCookieOptions = () =>
-  buildCookieOptions(PENDING_COOKIE_TTL_SECONDS);
-export const sessionCookieOptions = () =>
-  buildCookieOptions(SESSION_TTL_SECONDS);
-export const expiredCookieOptions = () => buildCookieOptions(0);
