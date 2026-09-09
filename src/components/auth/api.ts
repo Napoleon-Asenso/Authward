@@ -1,5 +1,15 @@
 import { CSRF_COOKIE } from "@/lib/auth/constants";
 
+/** Reads a browser cookie by name (client-side only). Returns null if absent. */
+export function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${name}=`));
+  return match ? match.slice(name.length + 1) : null;
+}
+
 export interface ApiResult {
   ok: boolean;
   status: number;

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { hashPassword } from "@/lib/auth/hash";
-import { SIGN_IN_PATH } from "@/lib/auth/constants";
+import { SIGN_IN_PATH, EMAIL_MEMORY_COOKIE } from "@/lib/auth/constants";
 import { SESSION_COOKIE } from "@/lib/auth/cookies";
 import { hashValue } from "@/lib/auth/tokens";
 import { requireCsrf, rotateCsrf } from "@/lib/auth/csrf";
@@ -44,6 +44,10 @@ export async function POST(request: NextRequest) {
   }
 
   const passwordHash = await hashPassword(password);
+  const user = await prisma.user.findUnique({
+    where: { id: record.userId },
+    select: { email: true },
+  });
 
   await prisma.$transaction(async (tx) => {
     await tx.user.update({
@@ -70,6 +74,17 @@ export async function POST(request: NextRequest) {
     path: "/",
     maxAge: 0,
   });
+  // Remember the user's email so the sign-in form can prefill it after they
+  // land on /auth?mode=signin following a successful password reset.
+  if (user) {
+    response.cookies.set(EMAIL_MEMORY_COOKIE, user.email, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60,
+    });
+  }
   rotateCsrf(response);
   return response;
 }

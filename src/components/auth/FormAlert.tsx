@@ -8,7 +8,7 @@ export function FormAlert({ message }: FormAlertProps) {
     <div
       role="alert"
       aria-live="assertive"
-      className="rounded-md border border-error bg-error-container px-3 py-2 text-sm text-on-error-container"
+      className="rounded-md border border-error bg-error-container px-3 py-2 text-center text-sm text-on-error-container"
     >
       {message}
     </div>

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { TextField } from "@/components/form/TextField";
 import { FormAlert } from "./FormAlert";
-import { postJson } from "./api";
-import { API, FORGOT_PASSWORD_PATH } from "@/lib/auth/constants";
+import { postJson, readCookie } from "./api";
+import { API, FORGOT_PASSWORD_PATH, EMAIL_MEMORY_COOKIE } from "@/lib/auth/constants";
 import {
   clientErrors,
   fieldError,
@@ -20,6 +20,11 @@ export function SigninForm() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    const remembered = readCookie(EMAIL_MEMORY_COOKIE);
+    if (remembered) setEmail(remembered);
+  }, []);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -74,6 +79,7 @@ export function SigninForm() {
         type="email"
         placeholder="you@example.com"
         autoComplete="email"
+        autoFocus
         value={email}
         onChange={(e) => {
           setEmail(e.target.value);
@@ -108,8 +114,14 @@ export function SigninForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="mt-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-2 flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container disabled:cursor-not-allowed disabled:opacity-50"
       >
+        {submitting && (
+          <span
+            aria-hidden="true"
+            className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+          />
+        )}
         {submitting ? "Signing in…" : "Sign in"}
       </button>
     </form>
