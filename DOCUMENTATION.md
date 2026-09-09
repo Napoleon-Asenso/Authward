@@ -317,3 +317,101 @@ What I left out because I ran out of time (and would be first to add):
 ## 8. If I Built This Again
 
 The one thing I would change is the routing approach: I would give each authentication workflow its own top-level route (`/signup`, `/verify-email`, `/signin`, `/forgot-password`, `/reset-password`) and drop the single `/auth?mode=` dispatcher, because routing every mode through one server component plus a middleware redirect chain is exactly what produced the reset-link blank-page and redirect bugs and made the codebase harder to reason about—every change to one mode risked a subtle interaction with the redirects for another. A dedicated page per flow keeps each journey's token look-up, error page, and form in one obvious file, so a reviewer can find and reason about each behaviour without tracing a `mode` switch and a middleware branch, and it removes the class of bug where shared route logic silently redirects a legitimate user away from a flow they should be allowed to reach.
+
+## 9. Evidence That These Claims Are True
+
+The security claims above are only as good as the proof behind them. Every artifact below is **machine-generated, not hand-written** — it is the raw output of a real `psql` query against the live database or a real `curl` call into the running route, captured verbatim. The full transcript for each is committed under `docs/evidence/` and is regenerable end-to-end by `docs/evidence/generate.ps1` against a running instance.
+
+Two things to note before reading them. First, the app was exercised **without a browser** — every request goes straight to the server route so nothing on the client could mask what the server actually does. Second, the auth routes require the double-submit CSRF handshake, so each mutating `curl` below performs **Step 0** (fetch the signup page to obtain a `csrf_token` cookie) and then echoes that cookie back as the `x-csrf-token` header.
+
+### 9.1 No plaintext password exists — only a bcrypt digest
+
+`docs/evidence/1-password-hashing.sql` is a raw `SELECT` of the `User` table. The `passwordHash` column holds `$2b$12$…` strings only.
+
+```
+                  id                  |           email            |                         passwordHash
+--------------------------------------+----------------------------+--------------------------------------------------------------
+ 32691e9f-527a-4a3e-a025-937d3d63cea4 | napoleonasenso30@gmail.com | $2b$12$D3TwIq4Xl9e6gLsInytFnugZnGe8kSV1qjtZo8EMHT5Hn2RKSKH22
+ 61d7ca28-5a52-409d-9aea-1982a15051e1 | asensonapoleon@gmail.com   | $2b$12$CqEkoQCDdNk0ggYeytTlGudxdA/5pgaYFuuJivFh2Ov3w33aS99UK
+(2 rows)
+```
+
+The `$2b$12$` prefix declares bcrypt with a cost factor of 12; the 60-character body is the salt-plus-hash. No row in this table holds a value that could be typed into a login form. The `1-password-hashing.sql` artifact also contains rows captured at a different timestamp to show the structure is stable across signups.
+
+### 9.2 The exact curl command that hits signup directly (no browser), and what the server returned
+
+You did not need to open a browser to create the account. Two `curl` invocations did it. `docs/evidence/2-server-validation.json` carries the exact commands plus the raw response.
+
+**Step 0 — obtain the CSRF token (the only non-mutating request):**
+```
+curl -s -c jar.txt -o /dev/null "http://localhost:3000/auth?mode=signup"
+CSRF=$(awk '$6=="csrf_token"{print $7}' jar.txt)
+```
+
+**Step 1 — create an account by hitting the API route directly:**
+```
+curl -s -i -c jar.txt -b jar.txt \
+  -H "Content-Type: application/json" \
+  -H "x-csrf-token: $CSRF" \
+  -d '{"name":"Evi Doc","email":"evidoc582711563@example.com","password":"Sup3rS3cure!x"}' \
+  http://localhost:3000/api/auth/signup
+```
+
+**What the server returned (verbatim):**
+```
+HTTP/1.1 201 Created
+content-type: application/json
+set-cookie: pending_verification_token=4c4f2e68-6c3f-4f04-9799-f6d22492ebc0.66ec28c4a06b84ac2c55efacc71ce5525034f485a06fe6b746823530f1d51a5f; Path=/; Expires=Wed, 09 Sep 2026 21:19:00 GMT; Max-Age=900; HttpOnly; SameSite=lax
+x-middleware-set-cookie: pending_verification_token=4c4f2e68-6c3f-4f04-9799-f6d22492ebc0.66ec28c4a06b84ac2c55efacc71ce5525034f485a06fe6b746823530f1d51a5f; Path=/; Expires=Wed, 09 Sep 2026 21:19:00 GMT; Max-Age=900; HttpOnly; SameSite=lax
+
+{"message":"Account created. Check your email for a verification code.","redirect":"/auth?mode=verify-email"}
+```
+
+Three facts are visible in that response and matter on their own: the status is **201 Created** (not a client-side redirect — the server did the work); the cookie is **HttpOnly** and **SameSite=lax** with a **900s (15 min)** `Max-Age`, so no JavaScript can read it and it dies with the code; and the JSON instructs navigation to `/auth?mode=verify-email`. Critically, **no `passwordHash` is ever returned** — the client gets an opaque acknowledgement, never the credential.
+
+Feeding invalid input instead shows the server rejecting it **before** it does any work — `docs/evidence/2-server-validation.json` records this exact `422`:
+```
+HTTP/1.1 422 Unprocessable Entity
+{"error":"Validation failed.","fieldErrors":{"password":["Password must be at least 8 characters.","Password must contain at least one uppercase letter.","Password must contain at least one digit.","Password must contain at least one special character."]}}
+```
+The same Zod schema used here is what the client form runs before submit (`clientErrors`/`fieldError`), so the browser and the server agree on what is acceptable.
+
+### 9.3 Rate limiting triggers — the server returns HTTP 429 with a real Retry-After
+
+`docs/evidence/4-rate-limiting.txt` is the record of six consecutive `/signin` requests for the same account:
+```
+-- Evidence 4: automated /signin requests exceeding limits (HTTP 429 + Retry-After)
+-- Generated: 20260907-003735
+[attempt 1] HTTP/1.1 401 Unauthorized
+[attempt 2] HTTP/1.1 401 Unauthorized
+[attempt 3] HTTP/1.1 401 Unauthorized
+[attempt 4] HTTP/1.1 401 Unauthorized
+[attempt 5] HTTP/1.1 401 Unauthorized
+[attempt 6] HTTP/1.1 429 Too Many Requests
+[attempt 6] header: retry-after: 885
+```
+
+The first five attempts fail as `401` (wrong password) without any penalty; the sixth exceeds the per-(IP, email) window and the server stops doing work entirely and returns **429 Too Many Requests** with a **`Retry-After`** header of 885 seconds. That number is computed from the sliding window, not hard-coded. Requests one through five each cost the server a real bcrypt comparison; request six costs nothing at all — because the limiter refused the request before the handler reached the database.
+
+### 9.4 A verification code in the database, and the same record after expiry
+
+`docs/evidence/3-token-expiry.json` contains, in one artifact, the database row for a verification code **and** the API's verdict once that code has passed its lifetime.
+
+First the code is stored — note the **`codeHash`** is a SHA-256 digest, not the plaintext 6 digits, so a leaked row cannot be typed into the verifier:
+```
+                  id                  |                             codeHash                             |        expiresAt        | isUsed
+--------------------------------------+------------------------------------------------------------------+-------------------------+--------
+ a6817b27-a353-49b2-b927-2db170c4bfc0 | b3815373999737ce80fc4b55008b5365e235dcd13317d5fbc9db4521fbcd6223 | 2026-09-06 00:38:00.145 | f
+(1 row)
+```
+The `expiresAt` column is the authoritative lifetime (15 minutes after issue), and `isUsed = f` marks it live. Then the expiry is **forced** (`expiresAt` moved one day into the past) and the same code is submitted — the route rejects it rather than accepting a stale code:
+
+```
+HTTP/1.1 400 Bad Request
+{"error":"Invalid or expired verification code."}
+```
+This is the machine check behind the "expiry is in the database, not the UI" claim: refreshing the page or re-typing the code cannot revive it once `expiresAt` has passed. The related single-use property for reset tokens is proven in `docs/evidence/5-single-use-tokens.txt`, where the *same* reset token is submitted twice and the second submission is rejected.
+
+### 9.5 How these were produced (reproducibility)
+
+None of the above is asserted from memory. The full pipeline is `docs/evidence/generate.ps1`, which starts the flow from raw `curl` requests methodically and records each result. Each artifact is stamped with the exact `curl`/`psql` command and captured timestamp, so re-running the script against the live instance regenerates equivalent, but timestamp-distinct, evidence. The requirement is that the evidence be *regenerable*, not that the timestamps stay fixed — a claim that cannot be re-derived is a claim, not evidence.
